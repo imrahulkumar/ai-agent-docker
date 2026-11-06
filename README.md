@@ -11,7 +11,7 @@ A small Node.js example that sends a chat-completion request to a model served l
 
 1. In Docker Desktop, open **Settings → AI** and enable **Docker Model Runner**.
 2. Enable **host-side TCP support** and use port `12434`. The example connects to the runner at `http://localhost:12434`.
-3. Pull a model from Docker Hub. For example:
+3. Pull a model from [Docker Hub](https://hub.docker.com/u/ai). For example:
 
    ```bash
    docker model pull ai/smollm2:360M-Q4_K_M
@@ -24,7 +24,9 @@ docker model pull ai/gemma3
 docker model pull ai/qwen3
 ```
 
-Model downloads can be large. Check Docker Hub for available tags and resource requirements before pulling a model.
+Browse the full list of AI models on Docker Hub: [hub.docker.com/u/ai](https://hub.docker.com/u/ai)
+
+Model downloads can be large. Check each model's page on Docker Hub for available tags and resource requirements before pulling it.
 
 ## Install and run
 
