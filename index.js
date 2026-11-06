@@ -1,7 +1,7 @@
 import OpenAI from "openai";
 
 const client = new OpenAI({
-  baseURL: "http://localhost:12434",
+  baseURL: "ttp://localhost:12434/engines/v1",
   apiKey: "1", // Docker doesn't require a real API key locally
 });
 
