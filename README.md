@@ -28,6 +28,39 @@ Browse the full list of AI models on Docker Hub: [hub.docker.com/u/ai](https://h
 
 Model downloads can be large. Check each model's page on Docker Hub for available tags and resource requirements before pulling it.
 
+## Run Gemma 4 (`ai/gemma4`)
+
+`ai/gemma4` is a model, not a container image. It can appear in Docker Desktop's **Images** list, but clicking the ▶ **Run** button there fails with:
+
+```
+Failed to run image. no command specified
+```
+
+Run it through Docker Model Runner instead:
+
+1. Pull it as a model. A model that only shows up under **Images** isn't registered with Model Runner until you do this. Check with `docker model list`.
+
+   ```bash
+   docker model pull ai/gemma4
+   ```
+
+2. Chat with it from the terminal:
+
+   ```bash
+   docker model run ai/gemma4                     # interactive chat
+   docker model run ai/gemma4 "Hi, who are you?"  # one-off prompt
+   ```
+
+   The first run installs the inference backend (`llama.cpp`) if `docker model status` lists it as "Not Installed".
+
+3. To call it from code, use `ai/gemma4` as the `model` value:
+
+   ```js
+   model: "ai/gemma4",
+   ```
+
+The model is about 7.3 GB, so make sure you have enough disk space and memory.
+
 ## Connect to Docker Model Runner
 
 Docker Model Runner exposes an OpenAI-compatible REST API, so any OpenAI client library can talk to it by changing the base URL. No real API key is needed, but most SDKs require a non-empty value, so pass any placeholder string.
@@ -101,12 +134,13 @@ const response = await client.chat.completions.create({
 console.log(response.choices[0].message.content);
 ```
 
-[node.js](./node.js) uses the shorter `http://localhost:12434`, which current Model Runner versions also accept. `/engines/v1` is the documented path and the safer choice.
+[index.js](./index.js) uses the shorter `http://localhost:12434`, which current Model Runner versions also accept. `/engines/v1` is the documented path and the safer choice.
 
 ### Troubleshooting
 
 - **Connection refused:** check that Docker Desktop is running, Model Runner is enabled, and host-side TCP is on port `12434`.
 - **Model not found:** make sure you pulled the model (`docker model list`) and that the `model` value matches an `id` from `/models`.
+- **"Failed to run image. no command specified" in Docker Desktop:** you clicked **Run** on a model (such as `ai/gemma4`) in the Images list. Models don't run as containers. Use `docker model run <model>` instead (see [Run Gemma 4](#run-gemma-4-aigemma4)).
 
 ## Install and run
 
@@ -114,7 +148,7 @@ From the project directory:
 
 ```bash
 npm install
-node node.js
+node index.js
 ```
 
 The script sends a sample prompt and prints the model's response.
@@ -127,7 +161,7 @@ After pulling a model, list your locally available models:
 docker model list
 ```
 
-Set the `model` value in [node.js](./node.js) to the model identifier shown by the runner. For example:
+Set the `model` value in [index.js](./index.js) to the model identifier shown by the runner. For example:
 
 ```js
 model: "ai/smollm2:360M-Q4_K_M",
