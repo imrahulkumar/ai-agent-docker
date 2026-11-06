@@ -28,6 +28,86 @@ Browse the full list of AI models on Docker Hub: [hub.docker.com/u/ai](https://h
 
 Model downloads can be large. Check each model's page on Docker Hub for available tags and resource requirements before pulling it.
 
+## Connect to Docker Model Runner
+
+Docker Model Runner exposes an OpenAI-compatible REST API, so any OpenAI client library can talk to it by changing the base URL. No real API key is needed, but most SDKs require a non-empty value, so pass any placeholder string.
+
+Full endpoint details are in the [Docker Model Runner API reference](https://docs.docker.com/ai/model-runner/api-reference/).
+
+### Pick the base URL
+
+Which URL you use depends on where your code runs:
+
+| Where your code runs | Base URL |
+| --- | --- |
+| On your machine (host), with host-side TCP enabled | `http://localhost:12434/engines/v1` |
+| Inside a Docker container | `http://model-runner.docker.internal/engines/v1` |
+
+If you haven't turned on host-side TCP in Docker Desktop settings, you can enable it from the command line:
+
+```bash
+docker desktop enable model-runner --tcp 12434
+```
+
+### Common endpoints
+
+All paths are relative to the base URL:
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `GET` | `/models` | List the models available to the runner |
+| `POST` | `/chat/completions` | Chat completion (used by this example) |
+| `POST` | `/completions` | Plain text completion |
+| `POST` | `/embeddings` | Generate embeddings |
+
+### Test the connection with curl
+
+1. Check that the runner is reachable and see which model IDs it exposes:
+
+   ```bash
+   curl http://localhost:12434/engines/v1/models
+   ```
+
+2. Send a chat request. Replace the `model` value with an ID from the previous step:
+
+   ```bash
+   curl http://localhost:12434/engines/v1/chat/completions \
+     -H "Content-Type: application/json" \
+     -d '{
+       "model": "ai/smollm2:360M-Q4_K_M",
+       "messages": [{ "role": "user", "content": "Hello!" }]
+     }'
+   ```
+
+If you get a response, any client that can send these requests will work.
+
+### Connect from Node.js
+
+The OpenAI SDK only needs `baseURL` pointing at the runner:
+
+```js
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "http://localhost:12434/engines/v1",
+  apiKey: "1", // any non-empty value; not checked locally
+});
+
+const response = await client.chat.completions.create({
+  model: "ai/smollm2:360M-Q4_K_M",
+  messages: [{ role: "user", content: "Hello!" }],
+});
+
+console.log(response.choices[0].message.content);
+```
+
+[node.js](./node.js) uses the shorter `http://localhost:12434`, which current Model Runner versions also accept. `/engines/v1` is the documented path and the safer choice.
+
+### Troubleshooting
+
+- **Connection refused:** check that Docker Desktop is running, Model Runner is enabled, and host-side TCP is on port `12434`.
+- **Model not found:** make sure you pulled the model (`docker model list`) and that the `model` value matches an `id` from `/models`.
+
 ## Install and run
 
 From the project directory:
